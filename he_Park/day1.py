@@ -1,22 +1,17 @@
-# 백준 5086
+# 백준 2480
 
-# while True:
-#     x, y = map(int, input().split())
-    
-#     if x == y:  
-#         break
+from collections import Counter
 
-#     elif y % x == 0:  
-#         print('factor')  
+A, B, C = map(int, input().split())
+lst = [A, B, C]
 
-#     elif x % y == 0:  
-#         print('multiple')  
+number_count = dict(Counter(lst))  # {주사위 숫자:나온 개수}
+reverse = {v:k for k, v in number_count.items()}  # {나온 개수:주사위 숫자}
 
-#     else:  
-#         print('neither')
+if 3 in reverse:  # 3개가 다 같다면
+    print(10000 + A * 1000)
 
-    
-# 8 16
-# 32 4
-# 17 5
-# 0 0
+elif 2 not in reverse:  # 3개 다 다르다면
+    print(max(lst) * 100)
+else:  # 2개만 같다면
+    print(1000 + reverse[2] * 100)
