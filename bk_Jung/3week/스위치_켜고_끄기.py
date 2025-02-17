@@ -1,17 +1,19 @@
 N = int(input())
 arr = [0] + list(map(int,input().split()))
+
 student_num = int(input())
 
 for i in range(student_num):
     a,b = map(int,input().split())
 
     if a == 1:
-        for j in range(b,N,b):
+        for j in range(b,N+1,b):
             arr[j] = 1 - arr[j]
+
     if a == 2:
         j = 1
         arr[b] = 1 - arr[b]
-        while  b + j > 0 and b + j <= N and arr[b+j] == arr[b-j]:
+        while  (b - j > 0 and b + j <= N) and (arr[b+j] == arr[b-j]):
             arr[b + j] = 1 - arr[b + j]
             arr[b-j] = 1 - arr[b-j]
             j += 1
