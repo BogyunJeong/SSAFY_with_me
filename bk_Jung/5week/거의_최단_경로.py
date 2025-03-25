@@ -1,98 +1,83 @@
 import heapq
+import sys
+
+input = sys.stdin.readline
 
 def dijkstra(S):
     pq = []
-    heapq.heappush(pq,(0,S))
-    distance = [INF] * (N)
-    distance[S] = 0 
-    
+    heapq.heappush(pq, (0, S))
+    distance = [INF] * N
+    distance[S] = 0
 
     while pq:
-        dist, now= heapq.heappop(pq)  # 가중치와 현재노드
-        if distance[now] < dist: # 현재 거리가 더 크면 다음 루트로
+        dist, now = heapq.heappop(pq)
+        if distance[now] < dist:
             continue
-        
-        for i in graph[now]:
-            cost = dist + i[1] # 다음으로 가는데 드는 비용
-            if distance[i[0]] < cost: # 다음으로 가는데 더 크다면 다음으로
 
-                continue
-            if distance[i[0]] == cost: # 다음 비용과 같다면 == 최단거리라면
-                parents[i[0]].append(now)
-                continue
-            distance[i[0]] = cost # 다음 가는비용이 더 적다면 초기화
-            parents[i[0]] = []
-            parents[i[0]].append(now)
-            heapq.heappush(pq,(cost,i[0]))
+        for nxt, cost in graph[now]:
+            new_cost = dist + cost
+            if distance[nxt] > new_cost:
+                distance[nxt] = new_cost
+                heapq.heappush(pq, (new_cost, nxt))
+                parents[nxt] = [now]  # 최단 경로 부모 갱신
+            elif distance[nxt] == new_cost:  # 최단 거리 같은 경우 추가
+                parents[nxt].append(now)
+
     return distance
-def visit_check(D):
 
-    visited[D] = 1
-    for i in parents[D]:
-        if not visited[i]:
-            visit_check(i)
-    
-
+def mark_shortest_paths(D):
+    """ 최단 경로에 해당하는 간선을 삭제 대상으로 표시 """
+    queue = [D]
+    while queue:
+        now = queue.pop()
+        for parent in parents[now]:
+            if (parent, now) not in remove_edges:
+                remove_edges.add((parent, now))
+                queue.append(parent)
 
 def almost_dijkstra(S):
+    """ 최단 경로 제외 후 다시 다익스트라 실행 """
     pq = []
-    distance = [INF] * (N)
-    heapq.heappush(pq,(0,S))
-    distance[S] = 0 
-
+    heapq.heappush(pq, (0, S))
+    distance = [INF] * N
+    distance[S] = 0
 
     while pq:
-        dist, now= heapq.heappop(pq)  # 가중치와 현재노드
-        if distance[now] < dist: # 현재 거리가 더 크면 다음 루트로
+        dist, now = heapq.heappop(pq)
+        if distance[now] < dist:
             continue
 
-        for i in graph[now]:
-            if visited[i[0]]:
+        for nxt, cost in graph[now]:
+            if (now, nxt) in remove_edges:  # 삭제 대상이면 무시
                 continue
-            cost = dist + i[1] # 다음으로 가는데 드는 비용
-            if distance[i[0]] < cost: # 다음으로 가는데 더 크다면 다음으로
-                continue
-            if distance[i[0]] == cost: # 다음 비용과 같다면 == 최단거리라면
-                continue
-            if straight and now == S and D == i[0]:
-                continue
-            distance[i[0]] = cost # 다음 가는비용이 더 적다면 초기화
-            heapq.heappush(pq,(cost,i[0]))
+
+            new_cost = dist + cost
+            if distance[nxt] > new_cost:
+                distance[nxt] = new_cost
+                heapq.heappush(pq, (new_cost, nxt))
+
     return distance
 
-
-
 while True:
-    N,M = map(int,input().split())
-    if N == 0 and M == 0: # 종료 조건건
+    N, M = map(int, input().split())
+    if N == 0 and M == 0:  # 종료 조건
         break
-    S,D = map(int,input().split())
+    S, D = map(int, input().split())
     graph = [[] for _ in range(N)]
-    for i in range(M):
-        a,b,w = map(int,input().split())
-        graph[a].append((b,w)) # 도착지점, 가중치
+    
+    for _ in range(M):
+        a, b, w = map(int, input().split())
+        graph[a].append((b, w))  # 단방향 그래프
 
-    INF = 21e9
-    distance = [INF] * (N)
- 
-    parents = [[] for _ in range(N)]
-    visited = [0] * N
-    init_distance = dijkstra(S)
-    visit_check(D)
-    straight = False
-    if visited[S] and visited[D] and sum(visited) == 2:
-        straight = True
-    visited[S] = 0
-    visited[D] = 0
+    INF = int(1e9)
+    parents = [[] for _ in range(N)]  # 최단 경로 부모 저장
+    remove_edges = set()  # 삭제할 간선 저장
 
-    almost_dijkstra(S)
-    almost_distance = almost_dijkstra(S)
-    print(visited)
-    print(almost_distance)
+    init_distance = dijkstra(S)  # 1차 다익스트라 실행
+    mark_shortest_paths(D)  # 최단 경로 간선 삭제 대상 등록
+    almost_distance = almost_dijkstra(S)  # 2차 다익스트라 실행
+
     if almost_distance[D] == INF:
         print(-1)
     else:
         print(almost_distance[D])
-
-
- 
